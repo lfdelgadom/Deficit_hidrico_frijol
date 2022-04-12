@@ -1,0 +1,163 @@
+---
+title: "Deficit hidrico frijol"
+author: "Luis Fernando Delgado Muñoz"
+date: "11/4/2022"
+output: word_document
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	cache = FALSE,
+	dpi = 300)
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+library(GGally)
+```
+
+```{r}
+# Gases
+Gases <- read_excel("../Deficit_hidrico_frijol/Data/datos frijol full.xlsx", 
+    skip = 1, sheet = "Gases", na = ".") %>% select(`HUM...1`:`FVFM...8`) %>% rename(`Nivel de humedad` = `HUM...1`, Genotipo = `GEN...2`, Repeticion = `REP...3`, CI = `CI ppm`, E = `E mmol/m2/s`, GS = `GS mmol/m2/s`, A = `A umolCO2/m2/s`, FVFM = `FVFM...8`) 
+#%>% mutate(`Nivel de humedad` = as.factor(`Nivel de humedad`), Genotipo = as.factor(Genotipo), Repeticion = as.factor(Repeticion))
+
+# Fluorecencia
+Fluorecencia <- read_excel("../Deficit_hidrico_frijol/Data/datos frijol full.xlsx", sheet = "Fluorescencia ", na = ".") %>% rename(`Nivel de humedad` = `HUM`, Genotipo = `GEN`, Repeticion = `REP`, FVFM_Fluor = FVFM) 
+  
+Fotosintesis <- Gases %>% left_join(Fluorecencia,  by=c("Nivel de humedad" = "Nivel de humedad",
+                                                     "Genotipo" = "Genotipo",
+                                                     "Repeticion" = "Repeticion"))
+
+```
+
+# Diagramas de cajas para cada una de las variables de respuesta en intercambio gaseoso
+
+# CO2 intercelular
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% ggplot(aes(x = `Nivel de humedad`, y = CI, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "CI (ppm)", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+  
+```
+# Transpiración foliar
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% ggplot(aes(x = `Nivel de humedad`, y = E, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "E (Corregir las unidades)", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+```
+
+# Conductancia estomática
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% ggplot(aes(x = `Nivel de humedad`, y = GS, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "GS (Corregir las unidades)", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+```
+
+# Tasa de asimilación neta
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% ggplot(aes(x = `Nivel de humedad`, y = A, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "A (Corregir las unidades)", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+```
+
+# FVFM
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% ggplot(aes(x = `Nivel de humedad`, y = FVFM, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "FVFM", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+```
+
+
+# FO
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+
+# Hay un dato raro en PV a 0,05CC
+Fotosintesis %>% ggplot(aes(x = `Nivel de humedad`, y = FO, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "FO", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+
+```
+
+# FM
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+
+# Hay un dato raro en PV a 0,05CC
+Fotosintesis %>% ggplot(aes(x = `Nivel de humedad`, y = FM, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "FM", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+
+```
+
+# FVFM_Fluor
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+
+Fotosintesis %>% ggplot(aes(x = `Nivel de humedad`, y = FVFM_Fluor, fill = `Nivel de humedad`)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_wrap(~Genotipo) +
+  labs(y = "FM", x = "Nivel de humedad") +
+  theme_bw() +
+  theme(
+        text = element_text(size = 20))
+
+```
+
+Ahra hacemos un analisis de correlacion multiple con los tres materiales y entre todas las variables de intercambio gaseoso
+
+```{r fig.align='center', fig.width=15, fig.height=8}
+Gases %>% group_by(`Nivel de humedad`, Genotipo) %>% summarise_at(vars(CI: FVFM), ~round(mean(.),3), na.rm = TRUE)
+
+Gases %>% ggpairs(., columns = 4:7, upper = list(continuous = wrap("cor", size = 5)),
+                  lower = list(continuous = "smooth"))
+
+
+```
+
+
+
+
+
+
+
